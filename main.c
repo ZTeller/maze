@@ -4,7 +4,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-bool isNotNumber(char number[])
+bool isNotNumber(const char number[])
 {
     int i = 0;
 
@@ -49,11 +49,11 @@ int overFlowCheck(char *fileName, int x, int y){
     while(true)
     {
         c = fgetc( file2 );
-        printf("%c", c);
+        //printf("%c", c);
         len++;
         if(c == '\n' ){
             lines++;
-            if(len-(x+2)!=x){
+            if(len-(y)!=y){
                 printf("Length of line is not what it should have been");
                 return 1;
             }
@@ -64,7 +64,7 @@ int overFlowCheck(char *fileName, int x, int y){
             break;
         }
     }
-    if(lines+1!=y){
+    if(lines!=x){
         printf("Lines are not what they should have been");
         return 1;
     }
@@ -79,14 +79,17 @@ int testInput(FILE *file, char* fileName){
 
     int map[x][y];
     int lineNum =0;
-    char line[x*2+2];
-    int test = overFlowCheck(fileName, x,y);
-    for(int j = 0; j<y; j++){
+    char line[y*2+2];
+    char *endP;
+    if(overFlowCheck(fileName, x,y)) return 1;
+    fgets(line, (int)sizeof(line), file);
+    for(int j = 0; j<x; j++){
         fgets(line, (int)sizeof(line), file);
-        printf("%s", strtok(line, " "));
-        for(int i = 0; i<x; i++){
-            map[lineNum][i] = (int)line[i*2];
+        for(int i = 0; i<y; i++){
+            map[j][i] = (int)strtol(&line[i*2], &endP, 10);
+            printf("%d ", map[j][i]);
         }
+        printf("\n");
         lineNum++;
     }
     return 0;
