@@ -4,6 +4,12 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+typedef struct {
+    int rows;
+    int cols;
+    unsigned char *cells;
+} Map;
+
 bool isNotNumber(const char number[])
 {
     int i = 0;
@@ -71,13 +77,34 @@ int overFlowCheck(char *fileName, int x, int y){
     return 0;
 }
 
-int testInput(FILE *file, char* fileName){
+void printMap(Map *map){
+    for(int i = 0; i<map->rows; i++){
+        for(int j = 0; j< map->cols; j++){
+            printf("%d ", map->cells[i*map->cols+j]);
+        }
+        printf("\n");
+    }
+}
+
+bool isborder(Map *map, int r, int c, int border){
+    if(map->cells[r*map->cols+c]&border){
+        printf("maps cell: [%d][%d] has border: %d\n", r+1,c+1, border);
+        return true;
+    }
+    return false;
+}
+
+int testInput(FILE *file, char* fileName, Map *map){
     char size[4];
     fgets(size, sizeof(size), file);
-    int x = strtok(size, " ")[0]-'0';
-    int y = strtok(NULL, " ")[0]-'0';
+    int x = strtok(size, " ")[0]-'0'; //Lines
+    int y = strtok(NULL, " ")[0]-'0'; //Elements on line
+    map->rows = x;
+    map->cols = y;
+    unsigned char cells[x*y];
+    memset(cells, 0, sizeof(cells));
+    map->cells = cells;
 
-    int map[x][y];
     int lineNum =0;
     char line[y*2+2];
     char *endP;
@@ -86,11 +113,37 @@ int testInput(FILE *file, char* fileName){
     for(int j = 0; j<x; j++){
         fgets(line, (int)sizeof(line), file);
         for(int i = 0; i<y; i++){
-            map[j][i] = (int)strtol(&line[i*2], &endP, 10);
-            printf("%d ", map[j][i]);
+            map->cells[j*y+i] = strtol(&line[i*2], &endP, 10);
         }
-        printf("\n");
         lineNum++;
+    }
+    printMap(map);
+
+    //Checking if borders make sense
+    bool errorInBorders = false;
+    for(int i = 0; i<map->rows; i++) {
+        for (int j = 0; j < map->cols; j++) {
+            if (j == 0) {
+                if (isborder(map, i, j, 2) & isborder(map, i, j + 1, 1)) {
+                    continue;
+                } else if (isborder(map, i, j, 2)) errorInBorders = true;
+            } else if (j == map->cols - 1) {
+                if (isborder(map, i, j, 1) & isborder(map, i, j - 1, 2)) continue;
+                else if (isborder(map, i, j, 1)) errorInBorders = true;
+            }
+
+
+            /*else {
+                if ((isborder(map, i, j, 2) & isborder(map, i, j + 1, 1)) &
+                        (isborder(map, i, j, 1) & isborder(map, i, j - 1, 2))) {
+                    continue;
+                }
+                else errorInBorders = true;
+            }*/
+        }
+    }
+    if(errorInBorders){
+        printf("Borders do not correlate to each other");
     }
     return 0;
 }
@@ -111,7 +164,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if(testInput(file, argv[4])) return 1;
+    Map map;
+    if(testInput(file, argv[4], &map)) return 1;
 
 
     return 0;
