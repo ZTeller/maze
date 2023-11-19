@@ -26,26 +26,6 @@ bool isNotNumber(const char number[])
     return 0;
 }
 
-int argCheck(int argc, char *argv[]){
-    if(strcmp(argv[1],"--help")==0){
-        printf("For help type '--help'\n");
-        printf("To test maze validity type command like './maze --test <FILE>'\n\n");
-        printf("To solve maze type command like: './maze <OPTION> <ROW> <COLUMN> <FILE>'\n\n");
-        printf("Options:\n");
-        printf("For right hand rule type '--rpath'\n");
-        printf("For left hand rule type '--lpath'\n");
-        return 0;
-    }
-    else if(strcmp(argv[2],"--test")==0){
-        return 0; //TADY SEBUDE TESTOVAT
-    }
-    else if (argc != 5 || (strcmp(argv[1],"--rpath")!=0 && strcmp(argv[1],"--lpath")!=0) || isNotNumber(argv[2])  || isNotNumber(argv[3])) {
-        printf("Input is not written correctly");
-        return 1;
-    }
-    else return 2;
-}
-
 int overFlowCheck(char *fileName, int x, int y){
     FILE *file2 = fopen(fileName, "r");
     int lines = 0, len = 0, c;
@@ -88,7 +68,7 @@ void printMap(Map *map){
 
 bool isborder(Map *map, int r, int c, int border){
     if(map->cells[r*map->cols+c]&border){
-        printf("maps cell: [%d][%d] has border: %d\n", r+1,c+1, border);
+        //printf("maps cell: [%d][%d] has border: %d\n", r+1,c+1, border);
         return true;
     }
     return false;
@@ -124,36 +104,79 @@ int testInput(FILE *file, char* fileName, Map *map){
     for(int i = 0; i<map->rows; i++) {
         for (int j = 0; j < map->cols; j++) {
             if (j == 0) {
-                if (isborder(map, i, j, 2) & isborder(map, i, j + 1, 1)) {
-                    continue;
-                } else if (isborder(map, i, j, 2)) errorInBorders = true;
+                if (isborder(map, i, j, 2) & !isborder(map, i, j + 1, 1)) errorInBorders=true;
             } else if (j == map->cols - 1) {
-                if (isborder(map, i, j, 1) & isborder(map, i, j - 1, 2)) continue;
-                else if (isborder(map, i, j, 1)) errorInBorders = true;
+                if (isborder(map, i, j, 1) & !isborder(map, i, j - 1, 2)) errorInBorders = true;
+            }else {
+                if ((isborder(map, i, j, 2) & !isborder(map, i, j + 1, 1)) ||
+                        (isborder(map, i, j, 1) & !isborder(map, i, j - 1, 2))) {
+                    errorInBorders = true;
+                }
             }
 
-
-            /*else {
-                if ((isborder(map, i, j, 2) & isborder(map, i, j + 1, 1)) &
-                        (isborder(map, i, j, 1) & isborder(map, i, j - 1, 2))) {
-                    continue;
+            if(i == 0 || (i == map->rows-1 & map->rows%2==0))continue;
+            else if(i == map->rows-1) {
+                if(isborder(map, i, j, 4) & !isborder(map, i-1, j, 4)) errorInBorders = true;
+            }
+            else{
+                if((isborder(map, i, j, 4) & !isborder(map, i+1, j, 4)) & ((i+j)%2==1) ||
+                        (isborder(map, i, j, 4) & !(isborder(map, i-1, j, 4)) & ((i+j)%2 == 0))){
+                    errorInBorders = true;
                 }
-                else errorInBorders = true;
-            }*/
+            }
+
         }
     }
     if(errorInBorders){
         printf("Borders do not correlate to each other");
+        return 1;
     }
     return 0;
 }
 
+int argCheck(int argc, char *argv[]){
+    if(strcmp(argv[1],"--help")==0){
+        printf("For help type '--help'\n");
+        printf("To test maze validity type command like './maze --test <FILE>'\n\n");
+        printf("To solve maze type command like: './maze <OPTION> <ROW> <COLUMN> <FILE>'\n\n");
+        printf("Options:\n");
+        printf("For right hand rule type '--rpath'\n");
+        printf("For left hand rule type '--lpath'\n");
+        return 0;
+    }
+    else if(strcmp(argv[2],"--test")==0){
+        Map map;
+        FILE *file = fopen(argv[2], "r");
+        if(testInput(file, argv[2], &map))
+            return 0;
+    }
+    else if (argc != 5 || (strcmp(argv[1],"--rpath")!=0 && strcmp(argv[1],"--lpath")!=0) || isNotNumber(argv[2])  || isNotNumber(argv[3])) {
+        printf("Input is not written correctly");
+        return 1;
+    }
+    return 1;
+}
+
+int start_border(Map *map, int r, int c, int leftright){
+    if(((r==map->rows) || (r == 1)) || ((c == map->cols) || (c == 1))){
+        if(leftright == 1){//RIGHT VARIANT
+            if(c == 1 & r%2 == 1) return 2; // Right if odd line
+            else if(c==1 & r%2 == 0) return 4; // Down in equal line
+            else if((c == map->cols) & ((c+r)%2==0)) return 4;
+            else if((c == map->cols) * ((c+r)%2==1)) return 1;
+            else if(r == 1) return 1;
+            else return 2;
+        }
+        // TODO: HERE WILL BE LEFT VARIANT
+    }
+    return 0;
+}
 
 int main(int argc, char *argv[]) {
 
     //Checks the input
     int arg = argCheck(argc, argv);
-    if(arg<2) return arg;
+    if(arg<1) return arg;
 
     FILE *file;
 
@@ -167,6 +190,12 @@ int main(int argc, char *argv[]) {
     Map map;
     if(testInput(file, argv[4], &map)) return 1;
 
+    int leftright;
+    char *endP;
+    if(strcmp(argv[1], "--rpath")==0) leftright = 1;
+    else leftright = 0;
+    int start = start_border(&map, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10), leftright);
+    if(start == 0) printf("Invalid starting point!");
 
     return 0;
 }
