@@ -40,18 +40,18 @@ int overFlowCheck(char *fileName, int x, int y){
         if(c == '\n' ){
             lines++;
             if(len-(y)!=y){
-                printf("Length of line is not what it should have been");
+                //printf("Length of line is not what it should have been");
                 return 1;
             }
             len = 0;
         }
         if(c == EOF) {
-            lines++;
+            //lines++;
             break;
         }
     }
     if(lines!=x){
-        printf("Lines are not what they should have been");
+        //printf("Lines are not what they should have been");
         return 1;
     }
     return 0;
@@ -97,7 +97,7 @@ int testInput(FILE *file, char* fileName, Map *map){
         }
         lineNum++;
     }
-    printMap(map);
+    //printMap(map);
 
     //Checking if borders make sense
     bool errorInBorders = false;
@@ -114,7 +114,7 @@ int testInput(FILE *file, char* fileName, Map *map){
                 }
             }
 
-            if(i == 0 || (i == map->rows-1 & map->rows%2==0))continue;
+            if(i == 0 || ((i == map->rows-1) & (map->rows%2==0)))continue;
             else if(i == map->rows-1) {
                 if(isborder(map, i, j, 4) & !isborder(map, i-1, j, 4)) errorInBorders = true;
             }
@@ -144,15 +144,20 @@ int argCheck(int argc, char *argv[]){
         printf("For left hand rule type '--lpath'\n");
         return 0;
     }
-    else if(strcmp(argv[2],"--test")==0){
+    else if(strcmp(argv[1],"--test")==0){
         Map map;
         FILE *file = fopen(argv[2], "r");
-        if(testInput(file, argv[2], &map))
+        if(file == NULL){
+            printf("File could not been opened\n");
             return 0;
+        }
+        if(testInput(file, argv[2], &map)==0) printf("Valid\n");
+        else printf("Invalid\n");
+        return 0;
     }
     else if (argc != 5 || (strcmp(argv[1],"--rpath")!=0 && strcmp(argv[1],"--lpath")!=0) || isNotNumber(argv[2])  || isNotNumber(argv[3])) {
-        printf("Input is not written correctly");
-        return 1;
+        printf("Input is not written correctly\n");
+        return 0;
     }
     return 1;
 }
@@ -160,10 +165,10 @@ int argCheck(int argc, char *argv[]){
 int start_border(Map *map, int r, int c, int leftright){
     if(((r==map->rows) || (r == 1)) || ((c == map->cols) || (c == 1))){
         if(leftright == 1){//RIGHT VARIANT
-            if(c == 1 & r%2 == 1) return 2; // Right if odd line
-            else if(c==1 & r%2 == 0) return 4; // Down in equal line
+            if((c == 1) & (r%2 == 1)) return 2; // Right if odd line
+            else if((c==1) & (r%2 == 0)) return 4; // Down in equal line
             else if((c == map->cols) & ((c+r)%2==0)) return 4;
-            else if((c == map->cols) * ((c+r)%2==1)) return 1;
+            else if((c == map->cols) & ((c+r)%2==1)) return 1;
             else if(r == 1) return 1;
             else return 2;
         }
@@ -176,7 +181,10 @@ int main(int argc, char *argv[]) {
 
     //Checks the input
     int arg = argCheck(argc, argv);
-    if(arg<1) return arg;
+    if(arg<1) {
+        printf("\n");
+        return arg;
+    }
 
     FILE *file;
 
@@ -196,6 +204,10 @@ int main(int argc, char *argv[]) {
     else leftright = 0;
     int start = start_border(&map, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10), leftright);
     if(start == 0) printf("Invalid starting point!");
+
+
+
+    //TODO: More jadro xd
 
     return 0;
 }
