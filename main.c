@@ -88,12 +88,16 @@ int testInput(FILE *file, char* fileName, Map *map){
     int lineNum =0;
     char line[y*2+2];
     char *endP;
-    if(overFlowCheck(fileName, x,y)) return 1;
+    if(overFlowCheck(fileName, x,y)) return 1; // Checks if there are more rows/columns than expected
     fgets(line, (int)sizeof(line), file);
+
     for(int j = 0; j<x; j++){
         fgets(line, (int)sizeof(line), file);
         for(int i = 0; i<y; i++){
             map->cells[j*y+i] = strtol(&line[i*2], &endP, 10);
+            if(map->cells[j*y+i]>7){
+                printf("At least one number is larger than 7!");
+            }
         }
         lineNum++;
     }
@@ -131,6 +135,7 @@ int testInput(FILE *file, char* fileName, Map *map){
         printf("Borders do not correlate to each other");
         return 1;
     }
+    printMap(map);
     return 0;
 }
 
@@ -177,6 +182,60 @@ int start_border(Map *map, int r, int c, int leftright){
     return 0;
 }
 
+void rpath(Map* map, int border, int r, int c){
+    int cols = map->cols;
+    r--;
+    c--;
+    //while(true){
+    for(int i = 0; i<10; i++)
+    {
+        printf("%d", map->cells[r*map->cols+cols]);
+        printf("[%d, %d] border: %d\n", r+1, c+1, border);
+        if((r+c)%2!=0) { //When odd cell
+            if (border & 4) {
+                if (!isborder(map, r, c, 4)) {
+                    r++;
+                    border = 1;
+                } else {
+                    border = 2;
+                }
+            } else if (border & 2) {
+                if (!isborder(map, r, c, 2)) {
+                    c++;
+                } else {
+                    border = 1;
+                }
+            } else if (border & 1) {
+                if (!isborder(map, r, c, 1)) {
+                    c--;
+                }
+                border = 4;
+            }
+        }
+        else{ // When qual cell
+            if (border & 4) {
+                if (!isborder(map, r, c, 4)) {
+                    r--;
+                    border = 2;
+                } else {
+                    border = 1;
+                }
+            } else if (border & 1) {
+                if (!isborder(map, r, c, 1)) {
+                    c--;
+                } else {
+                    border = 2;
+                }
+            } else if (border & 2) {
+                if (!isborder(map, r, c, 2)) {
+                    c++;
+                }
+                border = 4;
+            }
+        }
+    }
+}
+
 int main(int argc, char *argv[]) {
 
     //Checks the input
@@ -197,6 +256,7 @@ int main(int argc, char *argv[]) {
 
     Map map;
     if(testInput(file, argv[4], &map)) return 1;
+    //printMap(&map);
 
     int leftright;
     char *endP;
@@ -204,10 +264,13 @@ int main(int argc, char *argv[]) {
     else leftright = 0;
     int start = start_border(&map, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10), leftright);
     if(start == 0) printf("Invalid starting point!");
+    else printf("Starting point: %d", start);
 
 
 
     //TODO: More jadro xd
+    //printMap(&map);
+    rpath(&map, start, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10));
 
     return 0;
 }
