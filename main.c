@@ -186,9 +186,9 @@ void rpath(Map* map, int border, int r, int c){
     c--;
     int lastR, lastC;
     //while(true){
-    while(r>=0 & c >= 0 % r< map->rows, c<map->cols)
+    while((r>=0) & (c >= 0) & (r< map->rows) & (c<map->cols))
     {
-        if(!(r==lastR & c==lastC)){
+        if(!((r==lastR) & (c==lastC))){
             printf("%d,%d\n", r+1, c+1);
         }
         lastC = c;
@@ -263,16 +263,19 @@ int main(int argc, char *argv[]) {
     int leftright;
     char *endP;
     if(strcmp(argv[1], "--rpath")==0) leftright = 1;
-    else leftright = 0;
+    else{
+        leftright = 0;
+        return 0; //TODO: remove after lpath implementation
+    }
     int start = start_border(map, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10), leftright);
     if(start == 0) printf("Invalid starting point!");
-    else printf("Starting point: %d\n", start);
+    //else printf("Starting point: %d\n", start);
 
 
 
     //printMap(&map);
     rpath(map, start, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10));
     //TODO: --lpath
-
+    printf("\n");
     return 0;
 }
