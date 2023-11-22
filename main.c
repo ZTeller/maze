@@ -81,9 +81,7 @@ int testInput(FILE *file, char* fileName, Map *map){
     int y = strtok(NULL, " ")[0]-'0'; //Elements on line
     map->rows = x;
     map->cols = y;
-    unsigned char cells[x*y];
-    memset(cells, 0, sizeof(cells));
-    map->cells = cells;
+    map->cells = malloc(sizeof(int)*(x*y));
 
     int lineNum =0;
     char line[y*2+2];
@@ -135,7 +133,7 @@ int testInput(FILE *file, char* fileName, Map *map){
         printf("Borders do not correlate to each other");
         return 1;
     }
-    printMap(map);
+    //printMap(map);
     return 0;
 }
 
@@ -183,14 +181,18 @@ int start_border(Map *map, int r, int c, int leftright){
 }
 
 void rpath(Map* map, int border, int r, int c){
-    int cols = map->cols;
+    //printMap(map);
     r--;
     c--;
+    int lastR, lastC;
     //while(true){
-    for(int i = 0; i<10; i++)
+    while(r>=0 & c >= 0 % r< map->rows, c<map->cols)
     {
-        printf("%d", map->cells[r*map->cols+cols]);
-        printf("[%d, %d] border: %d\n", r+1, c+1, border);
+        if(!(r==lastR & c==lastC)){
+            printf("%d,%d\n", r+1, c+1);
+        }
+        lastC = c;
+        lastR = r;
         if((r+c)%2!=0) { //When odd cell
             if (border & 4) {
                 if (!isborder(map, r, c, 4)) {
@@ -254,23 +256,23 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    Map map;
-    if(testInput(file, argv[4], &map)) return 1;
-    //printMap(&map);
+    Map *map = malloc(sizeof(Map));
+    if(testInput(file, argv[4], map)) return 1;
+    //printMap(map);
 
     int leftright;
     char *endP;
     if(strcmp(argv[1], "--rpath")==0) leftright = 1;
     else leftright = 0;
-    int start = start_border(&map, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10), leftright);
+    int start = start_border(map, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10), leftright);
     if(start == 0) printf("Invalid starting point!");
-    else printf("Starting point: %d", start);
+    else printf("Starting point: %d\n", start);
 
 
 
-    //TODO: More jadro xd
     //printMap(&map);
-    rpath(&map, start, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10));
+    rpath(map, start, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10));
+    //TODO: --lpath
 
     return 0;
 }
