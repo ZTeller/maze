@@ -53,7 +53,7 @@ int overFlowCheck(char *fileName, int x, int y){
             }
             len = 0;
         }
-        if(c == EOF) {
+        else if(c == EOF) {
             //lines++;
             break;
         }
@@ -332,7 +332,10 @@ int main(int argc, char *argv[]) {
     }
 
     Map *map = malloc(sizeof(Map));
-    if(testInput(file, argv[4], map)) return 1;
+    if(testInput(file, argv[4], map)){
+        printf("Invalid maze");
+        return 1;
+    }
     //printMap(map);
 
     int leftright;
