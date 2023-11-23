@@ -1,3 +1,11 @@
+/*
+ * Name: Maze
+ * Author: Zdenek Teller
+ * Login: xtellez00
+ * Date: 22.11.2023
+ * Purpose: Second VUT project (Triangular maze pathfinder)
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
@@ -168,14 +176,22 @@ int argCheck(int argc, char *argv[]){
 int start_border(Map *map, int r, int c, int leftright){
     if(((r==map->rows) || (r == 1)) || ((c == map->cols) || (c == 1))){
         if(leftright == 1){//RIGHT VARIANT
-            if((c == 1) & (r%2 == 1)) return 2; // Right if odd line
-            else if((c==1) & (r%2 == 0)) return 4; // Down in equal line
+            if((c == 1) & (r%2 == 1)) return 2;
+            else if((c==1) & (r%2 == 0)) return 4;
             else if((c == map->cols) & ((c+r)%2==0)) return 4;
             else if((c == map->cols) & ((c+r)%2==1)) return 1;
-            else if(r == 1) return 1;
-            else return 2;
+            else if((r == 1) & ((c+r)%2==0)) return 1;
+            else if((c+r)%2==1) return 2;
         }
-        // TODO: HERE WILL BE LEFT VARIANT
+        // Left Variant
+        else{
+            if((c == 1) & (r%2 == 1)) return 4; // Right if odd line
+            else if((c==1) & (r%2 == 0)) return 2; // Down in equal line
+            else if((c == map->cols) & ((c+r)%2==0)) return 1;
+            else if((c == map->cols) & ((c+r)%2==1)) return 4;
+            else if((r == 1) & ((c+r)%2==0)) return 2;
+            else if((c+r)%2==1) return 1;
+        }
     }
     return 0;
 }
@@ -238,6 +254,65 @@ void rpath(Map* map, int border, int r, int c){
     }
 }
 
+void lpath(Map* map, int border, int r, int c){ //TODO: Nothing done yet
+    //printMap(map);
+    r--;
+    c--;
+    int lastR, lastC;
+    //while(true){
+    while((r>=0) & (c >= 0) & (r< map->rows) & (c<map->cols))
+    {
+        if(!((r==lastR) & (c==lastC))){
+            printf("%d,%d\n", r+1, c+1);
+        }
+        lastC = c;
+        lastR = r;
+        if((r+c)%2!=0) { //When odd cell
+            if (border & 4) {
+                if (!isborder(map, r, c, 4)) {
+                    r++;
+                    border = 2;//1
+                } else {
+                    border = 1;//2
+                }
+            } else if (border & 2) {
+                if (!isborder(map, r, c, 2)) {
+                    c++;
+                }
+                border = 4; //1
+            } else if (border & 1) {
+                if (!isborder(map, r, c, 1)) {
+                    c--;
+                    border = 1;//there was nothing
+                }
+                else border = 2;//4
+            }
+        }
+        else{ // When equal cell
+            if (border & 4) {
+                if (!isborder(map, r, c, 4)) {
+                    r--;
+                    border = 1;
+                } else {
+                    border = 2;
+                }
+            } else if (border & 1) {
+                if (!isborder(map, r, c, 1)) {
+                    c--;
+                }
+                border = 4;
+            } else if (border & 2) {
+                if (!isborder(map, r, c, 2)) {
+                    c++;
+                }
+                else{
+                    border = 1;
+                }
+            }
+        }
+    }
+}
+
 int main(int argc, char *argv[]) {
 
     //Checks the input
@@ -265,7 +340,6 @@ int main(int argc, char *argv[]) {
     if(strcmp(argv[1], "--rpath")==0) leftright = 1;
     else{
         leftright = 0;
-        return 0; //TODO: remove after lpath implementation
     }
     int start = start_border(map, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10), leftright);
     if(start == 0) printf("Invalid starting point!");
@@ -274,8 +348,11 @@ int main(int argc, char *argv[]) {
 
 
     //printMap(&map);
-    rpath(map, start, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10));
-    //TODO: --lpath
+    if(leftright == 1){
+        rpath(map, start, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10));
+    }else{
+        lpath(map, start, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10));
+    }
     printf("\n");
     return 0;
 }
