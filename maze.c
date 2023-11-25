@@ -48,7 +48,7 @@ int overFlowCheck(char *fileName, int x, int y){
         if(c == '\n' ){
             lines++;
             if(!((len-y==y)|| (len == 1))){
-                printf("Length of line is not what it should have been len=%d y=%d\n", len, y);
+                //printf("Length of line is not what it should have been len=%d y=%d\n", len, y);
                 return 1;
             }
             len = 0;
@@ -59,7 +59,7 @@ int overFlowCheck(char *fileName, int x, int y){
         }
     }
     if(lines!=x){
-        printf("Lines are not what they should have been lines=%d x=%d", lines, x);
+        //printf("Lines are not what they should have been lines=%d x=%d", lines, x);
         return 1;
     }
     return 0;
