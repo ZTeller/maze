@@ -47,8 +47,8 @@ int overFlowCheck(char *fileName, int x, int y){
         len++;
         if(c == '\n' ){
             lines++;
-            if(len-(y)!=y){
-                //printf("Length of line is not what it should have been");
+            if(!((len-y==y)|| (len == 1))){
+                printf("Length of line is not what it should have been len=%d y=%d\n", len, y);
                 return 1;
             }
             len = 0;
@@ -59,7 +59,7 @@ int overFlowCheck(char *fileName, int x, int y){
         }
     }
     if(lines!=x){
-        //printf("Lines are not what they should have been");
+        printf("Lines are not what they should have been lines=%d x=%d", lines, x);
         return 1;
     }
     return 0;
@@ -162,8 +162,8 @@ int argCheck(int argc, char *argv[]){
             printf("File could not been opened\n");
             return 0;
         }
-        if(testInput(file, argv[2], &map)==0) printf("Valid\n");
-        else printf("Invalid\n");
+        if(testInput(file, argv[2], &map)==0) printf("Valid");
+        else printf("Invalid");
         return 0;
     }
     else if (argc != 5 || (strcmp(argv[1],"--rpath")!=0 && strcmp(argv[1],"--lpath")!=0) || isNotNumber(argv[2])  || isNotNumber(argv[3])) {
@@ -356,6 +356,7 @@ int main(int argc, char *argv[]) {
     }else{
         lpath(map, start, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10));
     }
-    printf("\n");
+    //printf("\n");
     return 0;
+    //test2
 }
