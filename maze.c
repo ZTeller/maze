@@ -18,6 +18,21 @@ typedef struct {
     unsigned char *cells;
 } Map;
 
+Map* map_const(){
+    Map* map = malloc(sizeof(Map));
+    map->rows = 0;
+    map->cols = 0;
+    map->cells = NULL;
+    return map;
+}
+
+void map_dest(Map* map){
+    map->rows = 0;
+    map->cols = 0;
+    free(map->cells);
+    free(map);
+}
+
 bool isNotNumber(const char number[])
 {
     int i = 0;
@@ -49,6 +64,7 @@ int overFlowCheck(char *fileName, int x, int y){
             lines++;
             if(!((len-y==y)|| (len == 1))){
                 //printf("Length of line is not what it should have been len=%d y=%d\n", len, y);
+                fclose(file2);
                 return 1;
             }
             len = 0;
@@ -58,6 +74,7 @@ int overFlowCheck(char *fileName, int x, int y){
             break;
         }
     }
+    fclose(file2);
     if(lines!=x){
         //printf("Lines are not what they should have been lines=%d x=%d", lines, x);
         return 1;
@@ -89,7 +106,14 @@ int testInput(FILE *file, char* fileName, Map *map){
     int y = strtok(NULL, " ")[0]-'0'; //Elements on line
     map->rows = x;
     map->cols = y;
-    map->cells = malloc(sizeof(int)*(x*y));
+    unsigned char* cells = realloc(map->cells, sizeof(int)*(x*y));
+    if(cells == NULL){
+        printf("Map realloc fail");
+        free(cells);
+        return 1;
+    }
+    map->cells = cells;
+    //free(cells);
 
     int lineNum =0;
     char line[y*2+2];
@@ -145,7 +169,7 @@ int testInput(FILE *file, char* fileName, Map *map){
     return 0;
 }
 
-int argCheck(int argc, char *argv[]){
+int argCheck(int argc, char *argv[], Map* map){
     if(strcmp(argv[1],"--help")==0){
         printf("For help type '--help'\n");
         printf("To test maze validity type command like './maze --test <FILE>'\n\n");
@@ -156,14 +180,17 @@ int argCheck(int argc, char *argv[]){
         return 0;
     }
     else if(strcmp(argv[1],"--test")==0){
-        Map map;
         FILE *file = fopen(argv[2], "r");
         if(file == NULL){
             printf("File could not been opened\n");
             return 0;
         }
-        if(testInput(file, argv[2], &map)==0) printf("Valid");
+        //Map *map = map_const();
+        int test = testInput(file, argv[2], map);
+        if(test==0) printf("Valid");
         else printf("Invalid");
+        fclose(file);
+        map_dest(map); //TODO
         return 0;
     }
     else if (argc != 5 || (strcmp(argv[1],"--rpath")!=0 && strcmp(argv[1],"--lpath")!=0) || isNotNumber(argv[2])  || isNotNumber(argv[3])) {
@@ -200,7 +227,8 @@ void rpath(Map* map, int border, int r, int c){
     //printMap(map);
     r--;
     c--;
-    int lastR, lastC;
+    int lastR = 0;
+    int lastC = 0;
     //while(true){
     while((r>=0) & (c >= 0) & (r< map->rows) & (c<map->cols))
     {
@@ -254,12 +282,12 @@ void rpath(Map* map, int border, int r, int c){
     }
 }
 
-void lpath(Map* map, int border, int r, int c){ //TODO: Nothing done yet
+void lpath(Map* map, int border, int r, int c){
     //printMap(map);
     r--;
     c--;
-    int lastR, lastC;
-    //while(true){
+    int lastR = 0;
+    int lastC = 0;
     while((r>=0) & (c >= 0) & (r< map->rows) & (c<map->cols))
     {
         if(!((r==lastR) & (c==lastC))){
@@ -315,8 +343,9 @@ void lpath(Map* map, int border, int r, int c){ //TODO: Nothing done yet
 
 int main(int argc, char *argv[]) {
 
+    Map *map = map_const();
     //Checks the input
-    int arg = argCheck(argc, argv);
+    int arg = argCheck(argc, argv, map);
     if(arg<1) {
         printf("\n");
         return arg;
@@ -331,9 +360,13 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    Map *map = malloc(sizeof(Map));
+    if(map == NULL){
+        printf("Map malloc error");
+        return 1;
+    }
     if(testInput(file, argv[4], map)){
         printf("Invalid maze");
+        map_dest(map);
         return 1;
     }
     //printMap(map);
@@ -345,18 +378,26 @@ int main(int argc, char *argv[]) {
         leftright = 0;
     }
     int start = start_border(map, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10), leftright);
-    if(start == 0) printf("Invalid starting point!");
+    if(start == 0){
+        printf("Invalid starting point!");
+        map_dest(map);
+        return 1;
+    }
     //else printf("Starting point: %d\n", start);
 
 
 
     //printMap(&map);
+    int r = (int)strtol(argv[2], &endP, 10);
+    int c = (int)strtol(argv[3], &endP, 10);
     if(leftright == 1){
-        rpath(map, start, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10));
+        rpath(map, start, r, c);
     }else{
-        lpath(map, start, (int)strtol(argv[2], &endP, 10), (int)strtol(argv[3], &endP, 10));
+        lpath(map, start, r, c);
     }
     //printf("\n");
+    map_dest(map);
+    fclose(file);
     return 0;
     //test2
 }

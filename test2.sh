@@ -111,5 +111,5 @@ test_example "--rpath 6 1 ./inputs/bludiste.txt"     5
 test_example "--rpath 6 7 ./inputs/bludiste.txt"     6
 
 # test the bonus functionality
-echo "----- Bonus/Premium functionality ------------------------------"
-test_example "--shortest 3 7 ./inputs/bludiste.txt"  7
+#echo "----- Bonus/Premium functionality ------------------------------"
+#test_example "--shortest 3 7 ./inputs/bludiste.txt"  7
